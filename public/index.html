@@ -23,7 +23,7 @@
             const url = document.getElementById("urlInput").value;
             if (url) {
                 // 関数のパスを指定
-                document.getElementById("browserFrame").src = `/.netlify/functions/proxy?url=${encodeURIComponent(url)}`;
+                document.getElementById("browserFrame").src = `/netlify/functions/proxy?url=${encodeURIComponent(url)}`;
             }
         }
     </script>
