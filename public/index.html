@@ -22,7 +22,8 @@
         function openSite() {
             const url = document.getElementById("urlInput").value;
             if (url) {
-                document.getElementById("browserFrame").src = `/functions/proxy?url=${encodeURIComponent(url)}`;
+                // 関数のパスを指定
+                document.getElementById("browserFrame").src = `/.netlify/functions/proxy?url=${encodeURIComponent(url)}`;
             }
         }
     </script>
