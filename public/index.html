@@ -13,7 +13,7 @@
 </head>
 <body>
     <h2>Proxy Browser</h2>
-    <input type="text" id="urlInput" placeholder="https://examplee.com">
+    <input type="text" id="urlInput" placeholder="https://www2.x-feeder.info/minnnano/">
     <button onclick="openSite()">開く</button>
     <br>
     <iframe id="browserFrame"></iframe>
@@ -22,8 +22,10 @@
         function openSite() {
             const url = document.getElementById("urlInput").value;
             if (url) {
-                // 関数のパスを指定
+                // 関数のパスを指定し、URLをエンコード
                 document.getElementById("browserFrame").src = `/.netlify/functions/proxy?url=${encodeURIComponent(url)}`;
+            } else {
+                alert('URLを入力してください。');
             }
         }
     </script>
