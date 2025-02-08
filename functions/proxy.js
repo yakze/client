@@ -10,7 +10,6 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    // ターゲットのURLに対してHTTPリクエストを送る
     const response = await fetch(url);
     const data = await response.text();
 
