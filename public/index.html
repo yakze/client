@@ -3,30 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proxy Browser</title>
+    <title>Rammerhead風ブラウザ</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        input { width: 80%; padding: 10px; margin: 10px; }
-        button { padding: 10px; cursor: pointer; }
-        iframe { width: 90%; height: 80vh; border: 1px solid #ccc; margin-top: 10px; }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        header { background-color: #333; color: #fff; padding: 10px; display: flex; align-items: center; }
+        #urlInput { width: 80%; padding: 5px; font-size: 16px; }
+        button { padding: 5px; cursor: pointer; }
+        iframe { width: 100%; height: 90vh; border: none; }
+        .toolbar { display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
-    <h2>Proxy Browser</h2>
-    <input type="text" id="urlInput" placeholder="https://www2.x-feeder.info/minnnano/">
-    <button onclick="openSite()">開く</button>
-    <br>
+    <!-- ツールバー -->
+    <header>
+        <div class="toolbar">
+            <button onclick="navigateBack()">戻る</button>
+            <input type="text" id="urlInput" placeholder="https://example.com" value="https://www2.x-feeder.info/minnnano/">
+            <button onclick="openSite()">開く</button>
+        </div>
+    </header>
+
+    <!-- iframe -->
     <iframe id="browserFrame"></iframe>
 
     <script>
+        const iframe = document.getElementById("browserFrame");
+
+        // ページ遷移の関数
         function openSite() {
             const url = document.getElementById("urlInput").value;
             if (url) {
-                // 関数のパスを指定し、URLをエンコード
-                document.getElementById("browserFrame").src = `/.netlify/functions/proxy?url=${encodeURIComponent(url)}`;
+                iframe.src = `/.netlify/functions/proxy?url=${encodeURIComponent(url)}`;
             } else {
                 alert('URLを入力してください。');
             }
+        }
+
+        // 戻るボタンの機能
+        function navigateBack() {
+            history.back();
         }
     </script>
 </body>
