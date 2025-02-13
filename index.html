@@ -3,76 +3,250 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>URL 入力と表示</title>
+    <title>Kahoot カスタムクライアント</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            background-color: #f4f4f4;
+            padding: 0;
+            margin: 0;
+            transition: background-color 0.3s;
+            background-size: cover;
+            font-family: Arial, sans-serif;
         }
-        input[type="text"] {
-            padding: 10px;
-            font-size: 16px;
-            margin: 10px 0;
-            width: 80%;
-            max-width: 600px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #4CAF50;
+        .header {
+            width: 100%;
+            background: #46178f;
             color: white;
-            border: none;
-            border-radius: 4px;
+            text-align: center;
+            padding: 15px 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .profile-container {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .profile-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+        }
+        .profile-name {
+            color: white;
+            font-size: 14px;
+            margin-top: 5px;
+            font-weight: bold;
+            text-align: center;
+            animation: rainbow 3s linear infinite;
+        }
+        .profile-badge {
+            margin-left: 5px;
+            width: 20px;
+            height: 20px;
+        }
+        @keyframes rainbow {
+            0% { color: red; }
+            14% { color: orange; }
+            28% { color: yellow; }
+            42% { color: green; }
+            57% { color: blue; }
+            71% { color: indigo; }
+            85% { color: violet; }
+            100% { color: red; }
+        }
+        .settings-container {
+            margin-top: 10px;
             cursor: pointer;
         }
-        button:hover {
-            background-color: #45a049;
+        .settings-icon {
+            width: 40px;
+            height: 40px;
+        }
+        .panel {
+            display: none;
+            position: fixed;
+            top: 70px;
+            right: 10px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            z-index: 1000;
+        }
+        .iframe-container {
+            width: 100%;
+            height: calc(100vh - 50px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
         }
         iframe {
-            margin-top: 20px;
-            width: 80%;
-            max-width: 800px;
-            height: 600px;
-            border: 1px solid #ccc;
+            width: 90%;
+            height: 90%;
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
         }
     </style>
 </head>
 <body>
+    <div class="header">Kahoot カスタムクライアント</div>
 
-    <h1>表示するURLを入力</h1>
+    <!-- プロフィール & 設定アイコン -->
+    <div class="profile-container">
+        <img id="profileIcon" src="https://via.placeholder.com/50" alt="Profile" class="profile-icon">
+        <div id="profileName" class="profile-name">ゲスト</div>
+        <img src="https://img.icons8.com/ios-filled/50/000000/nuke.png" alt="Badge" class="profile-badge">
+        <div class="settings-container">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/settings.png" alt="Settings" class="settings-icon" id="settingsIcon">
+        </div>
+    </div>
 
-    <input type="text" id="url-input" placeholder="URL を入力 (例: https://www.example.com)">
-    <button onclick="loadUrl()">URL を開く</button>
+    <!-- プロフィールパネル -->
+    <div class="panel" id="profilePanel">
+        <h2>プロフィール</h2>
+        <img id="profilePreview" src="https://via.placeholder.com/80" alt="Profile" class="profile-icon">
+        <br>
+        <label>ユーザー名:</label>
+        <input type="text" id="userName" placeholder="名前を入力">
+        <br><br>
+        <label>プロフィール画像をアップロード:</label>
+        <input type="file" id="profileImageUpload" accept="image/*">
+        <br><br>
+        <button onclick="closePanel('profilePanel')">閉じる</button>
+    </div>
 
-    <iframe id="iframe" src="" title="表示されるページ"></iframe>
+    <!-- 設定パネル -->
+    <div class="panel" id="settingsPanel">
+        <h2>設定</h2>
+        <label>背景色を選択:</label>
+        <input type="color" id="bgColorPicker">
+        <br><br>
+        <label>背景画像をアップロード:</label>
+        <input type="file" id="bgImageUpload" accept="image/*">
+        <br><br>
+        <button id="resetBackground">背景をリセット</button>
+        <br><br>
+        <button onclick="closePanel('settingsPanel')">閉じる</button>
+    </div>
 
+    <div class="iframe-container">
+        <iframe id="kahootFrame" src="https://kahoot.it" allowfullscreen></iframe>
+    </div>
     <script>
-        // URL 入力後に iframe を更新する関数
-        function loadUrl() {
-            // 入力された URL を取得
-            const url = document.getElementById("url-input").value;
-            
-            // 入力された URL が有効かチェック
-            if (url) {
-                // Cloudflare Worker の URL にクエリパラメータとして指定された URL を渡す
-                const workerUrl = `https://broad-shadow-f594.aaahawataame.workers.dev/?url=${encodeURIComponent(url)}`;
-                
-                // iframe の src 属性を更新して、指定された URL を表示
-                document.getElementById("iframe").src = workerUrl;
-            } else {
-                alert("URL を入力してください！");
-            }
+    document.addEventListener("DOMContentLoaded", function() {
+        const bgColorPicker = document.getElementById("bgColorPicker");
+        const bgImageUpload = document.getElementById("bgImageUpload");
+        const profileImageUpload = document.getElementById("profileImageUpload");
+        const settingsIcon = document.getElementById("settingsIcon");
+        const profileIcon = document.getElementById("profileIcon");
+        const profilePreview = document.getElementById("profilePreview");
+        const profileName = document.getElementById("profileName");
+        const profileBadge = document.querySelector(".profile-badge");
+        const settingsPanel = document.getElementById("settingsPanel");
+        const profilePanel = document.getElementById("profilePanel");
+        const userNameInput = document.getElementById("userName");
+        const resetBackground = document.getElementById("resetBackground");
+
+        // ローカルストレージの値を取得
+        const savedColor = localStorage.getItem("bgColor");
+        const savedImage = localStorage.getItem("bgImage");
+        const savedProfileImage = localStorage.getItem("profileImage");
+        const savedUserName = localStorage.getItem("userName");
+
+        if (savedColor) {
+            document.body.style.backgroundColor = savedColor;
+            bgColorPicker.value = savedColor;
         }
-    </script>
+        if (savedImage) {
+            document.body.style.backgroundImage = `url(${savedImage})`;
+        }
+        if (savedProfileImage) {
+            profileIcon.src = savedProfileImage;
+            profilePreview.src = savedProfileImage;
+        }
+        if (savedUserName) {
+            userNameInput.value = savedUserName;
+            profileName.textContent = savedUserName;
+        }
+
+        // 背景色変更
+        bgColorPicker.addEventListener("input", function() {
+            document.body.style.backgroundColor = bgColorPicker.value;
+            localStorage.setItem("bgColor", bgColorPicker.value);
+        });
+
+        // 背景画像変更
+        bgImageUpload.addEventListener("change", function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function() {
+                    document.body.style.backgroundImage = `url(${reader.result})`;
+                    localStorage.setItem("bgImage", reader.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // プロフィール画像変更
+        profileImageUpload.addEventListener("change", function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function() {
+                    profileIcon.src = reader.result;
+                    profilePreview.src = reader.result;
+                    localStorage.setItem("profileImage", reader.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // ユーザー名変更
+        userNameInput.addEventListener("input", function() {
+            const newName = userNameInput.value.trim() || "ゲスト";
+            localStorage.setItem("userName", newName);
+            profileName.textContent = newName;
+        });
+
+        // 設定 & プロフィールパネルの開閉
+        settingsIcon.addEventListener("click", function() {
+            settingsPanel.style.display = settingsPanel.style.display === "block" ? "none" : "block";
+        });
+
+        profileIcon.addEventListener("click", function() {
+            profilePanel.style.display = profilePanel.style.display === "block" ? "none" : "block";
+        });
+
+        // 背景リセット機能
+        resetBackground.addEventListener("click", function() {
+            // 背景色と画像をリセット
+            document.body.style.backgroundColor = "";
+            document.body.style.backgroundImage = "";
+            bgColorPicker.value = "#ffffff";  // 背景色の初期化
+            localStorage.removeItem("bgColor");
+            localStorage.removeItem("bgImage");
+        });
+    });
+
+    function closePanel(panelId) {
+        document.getElementById(panelId).style.display = "none";
+    }
+</script>
 
 </body>
 </html>
